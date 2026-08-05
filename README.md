@@ -148,7 +148,7 @@ php artisan migrate
 ```php
 UtmRecord::source('google')->campaign(['spring-sale', 'jan-promo'])->get();
 UtmRecord::attributed()->between($from, $to)->count();
-$record->touches('utm_source');   // ['newsletter', 'google'] — decoded mcf_utm_source
+$record->touchChain('utm_source'); // ['newsletter', 'google'] — decoded mcf_utm_source
 $record->touchTimes();            // [Carbon, Carbon, ...] — decoded mcf_timestamp
 ```
 

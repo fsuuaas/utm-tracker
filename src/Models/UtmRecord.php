@@ -61,9 +61,16 @@ class UtmRecord extends Model
     /**
      * The multi-touch chain for a field, decoded into individual touches.
      *
+     * Named touchChain() rather than touches() — the latter collides with
+     * Illuminate\Database\Eloquent\Concerns\HasRelationships::touches($relation),
+     * which every Eloquent model inherits. Overriding it with an incompatible
+     * signature is a compile-time fatal the moment this class is loaded, and it
+     * is not catchable: it doesn't merely break this method, it breaks every
+     * model that uses HasUtm.
+     *
      * @return list<string>
      */
-    public function touches(string $field = 'utm_source'): array
+    public function touchChain(string $field = 'utm_source'): array
     {
         return Chain::parse((string) $this->getAttribute('mcf_'.$field));
     }
