@@ -40,31 +40,21 @@ PHP 8.1+, Laravel 10 / 11 / 12.
 
 ## Install
 
-Not yet tagged as a stable release — install from the `main` branch until a
-tagged version exists:
+```bash
+composer require fsuuaas/utm-tracker
+php artisan vendor:publish --tag=utm-tracker-assets
+```
+
+If you're consuming it via a VCS repository entry instead of Packagist:
 
 ```json
 "repositories": [
     { "type": "vcs", "url": "https://github.com/fsuuaas/utm-tracker" }
 ],
 "require": {
-    "fsuuaas/utm-tracker": "dev-main"
+    "fsuuaas/utm-tracker": "^1.0"
 }
 ```
-
-```bash
-composer require fsuuaas/utm-tracker:dev-main
-php artisan vendor:publish --tag=utm-tracker-assets
-```
-
-Once a tag exists (`^0.3` or later — see note below), switch to it and drop
-`dev-main`; a version constraint tracks new releases automatically, a branch
-name does not.
-
-> **Note on the version numbers:** the existing tags are `v0.01` and `v0.02`,
-> which Composer's version comparator normalizes to `0.2.0`. Any future tag
-> must be `v0.3.0` or higher — a `v0.1.x` tag would compare as *older* than
-> `v0.02` and be ignored by anyone already on it.
 
 ## Frontend-only usage
 
