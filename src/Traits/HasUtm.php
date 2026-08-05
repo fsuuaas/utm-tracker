@@ -2,18 +2,13 @@
 
 namespace Fsuuaas\UtmTracker\Traits;
 
+use Fsuuaas\UtmTracker\Concerns\HasUtm as Concern;
+
 /**
- * Adds a polymorphic one-to-many relationship to UtmRecord.
+ * @deprecated Use Fsuuaas\UtmTracker\Concerns\HasUtm instead. Kept so an app can
+ *             adopt the package without editing every model in one change.
  */
 trait HasUtm
 {
-    public function utm()
-    {
-        return $this->morphMany(config('utm-tracker.model'), 'utmable');
-    }
-
-    public function hasUtm(): bool
-    {
-        return $this->utm()->exists();
-    }
+    use Concern;
 }
