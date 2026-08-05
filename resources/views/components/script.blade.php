@@ -11,6 +11,7 @@
         'cookie_domain' => config('utm-tracker.cookie_domain'),
         'same_site' => config('utm-tracker.same_site', 'Lax'),
         'mcf_max_touches' => config('utm-tracker.mcf_max_touches'),
+        'direct_handling' => config('utm-tracker.direct_handling', 'first_only'),
         'max_bytes' => config('utm-tracker.max_bytes', 3500),
         'legacy_cookies' => config('utm-tracker.legacy_cookies', []),
     ];

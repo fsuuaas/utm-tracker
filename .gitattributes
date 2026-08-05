@@ -1,0 +1,25 @@
+# Normalise line endings. The repo is authored on Windows; shipped source must
+# not carry CRLF into consumers' vendor directories.
+* text=auto eol=lf
+
+*.php       text eol=lf diff=php
+*.js        text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.stub      text eol=lf
+*.blade.php text eol=lf
+
+# Keep development scaffolding out of the dist tarball Packagist builds.
+/.github            export-ignore
+/tests              export-ignore
+/workbench          export-ignore
+/resources/js/src   export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/phpunit.xml.dist   export-ignore
+/phpstan.neon.dist  export-ignore
+/pint.json          export-ignore
+/package.json       export-ignore
+/vite.config.js     export-ignore
+/CHANGELOG.md       export-ignore
+/UPGRADING.md       export-ignore

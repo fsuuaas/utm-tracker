@@ -67,6 +67,15 @@ return [
     // Max touches kept in each multi-touch (mcf_*) chain.
     'mcf_max_touches' => env('UTM_TRACKER_MCF_MAX_TOUCHES', 10),
 
+    // What a direct visit does to existing attribution:
+    //   'first_only' — record direct only when nothing is credited yet. This is
+    //                  the default and matches the last non-direct click model
+    //                  analytics tools use: someone who arrived via a campaign
+    //                  and later types the URL is still credited to it.
+    //   'always'     — treat every direct visit as a new touch.
+    //   'ignore'     — never record direct traffic.
+    'direct_handling' => env('UTM_TRACKER_DIRECT_HANDLING', 'first_only'),
+
     // Hard ceiling on the encoded cookie, in bytes. Browsers drop cookies over
     // roughly 4KB silently, which would stop attribution updating with no error.
     'max_bytes' => env('UTM_TRACKER_MAX_BYTES', 3500),

@@ -2,74 +2,167 @@
 
 namespace Fsuuaas\UtmTracker\Models;
 
+use Fsuuaas\UtmTracker\Support\Chain;
+use Fsuuaas\UtmTracker\UtmTracker;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string|null $utm_source
+ * @property string|null $utm_medium
+ * @property string|null $utm_campaign
+ * @property string|null $mcf_utm_source
+ * @property string|null $mcf_timestamp
+ * @property int|null $session_count
+ */
 class UtmRecord extends Model
 {
-    protected $table = 'utm_records';
+    use HasFactory;
 
-    protected $fillable = [
-        'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid',
-        'first_utm_source', 'first_utm_medium', 'first_utm_campaign', 'first_utm_term',
-        'first_utm_content', 'first_gclid',
-        'mcf_utm_source', 'mcf_utm_medium', 'mcf_utm_campaign', 'mcf_utm_term',
-        'mcf_utm_content', 'mcf_timestamp',
-        'referrer', 'landing_page', 'ip_address', 'user_agent', 'session_count',
+    /** Mass assignment is bounded by getFillable() below, not by a guard list. */
+    protected $guarded = [];
+
+    protected $casts = [
+        'session_count' => 'integer',
+        // mcf_timestamp is deliberately NOT cast: it holds a ">"-joined chain of
+        // epoch milliseconds, not a single date.
     ];
 
-    public function utmable()
+    public function getTable(): string
+    {
+        return $this->table ?? (string) config('utm-tracker.table', 'utm_records');
+    }
+
+    /**
+     * Derived from the field registry, so adding a field never means editing
+     * this model.
+     *
+     * @return list<string>
+     */
+    public function getFillable(): array
+    {
+        return UtmTracker::fields()->attributes();
+    }
+
+    public function utmable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    public function scopeByCampaign(Builder $q, string $campaign)
+    /*
+    |---------------------------------------------------------------------------
+    | Chain helpers
+    |---------------------------------------------------------------------------
+    */
+
+    /**
+     * The multi-touch chain for a field, decoded into individual touches.
+     *
+     * @return list<string>
+     */
+    public function touches(string $field = 'utm_source'): array
     {
-        return $q->where('utm_campaign', $campaign);
+        return Chain::parse((string) $this->getAttribute('mcf_'.$field));
     }
 
-    public function scopeFromDateRange(Builder $q, $from, $to)
+    /**
+     * Touch timestamps decoded from the epoch-millisecond chain.
+     *
+     * @return list<Carbon>
+     */
+    public function touchTimes(): array
     {
-        return $q->whereBetween('created_at', [$from, $to]);
+        return array_values(array_map(
+            static fn (string $ms) => Carbon::createFromTimestampMs((int) $ms),
+            array_filter(Chain::parse((string) $this->mcf_timestamp), 'is_numeric'),
+        ));
     }
 
-    public function scopeWithSource(Builder $q, string $source)
+    /*
+    |---------------------------------------------------------------------------
+    | Scopes
+    |---------------------------------------------------------------------------
+    |
+    | Named for what they filter, not "with*" — in Eloquent "with" means
+    | eager-loading, and these do the opposite.
+    */
+
+    /** @param  string|list<string>  $value */
+    public function scopeSource(Builder $query, string|array $value): Builder
     {
-        return $q->where('utm_source', $source);
+        return $this->applyFilter($query, 'utm_source', $value);
     }
 
-    public function scopeWithMedium(Builder $q, string $medium)
+    /** @param  string|list<string>  $value */
+    public function scopeMedium(Builder $query, string|array $value): Builder
     {
-        return $q->where('utm_medium', $medium);
+        return $this->applyFilter($query, 'utm_medium', $value);
     }
 
-    public function scopeWithTerm(Builder $q, string $term)
+    /** @param  string|list<string>  $value */
+    public function scopeCampaign(Builder $query, string|array $value): Builder
     {
-        return $q->where('utm_term', $term);
+        return $this->applyFilter($query, 'utm_campaign', $value);
     }
 
-    public function scopeWithGclid(Builder $q, string $gclid)
+    /** @param  string|list<string>  $value */
+    public function scopeTerm(Builder $query, string|array $value): Builder
     {
-        return $q->where('gclid', $gclid);
+        return $this->applyFilter($query, 'utm_term', $value);
     }
 
-    public function scopeWithReferrer(Builder $q, string $referrer)
+    /** @param  string|list<string>  $value */
+    public function scopeContent(Builder $query, string|array $value): Builder
     {
-        return $q->where('referrer', $referrer);
+        return $this->applyFilter($query, 'utm_content', $value);
     }
 
-    public function scopeWithLandingPage(Builder $q, string $landingPage)
+    /** @param  string|list<string>  $value */
+    public function scopeGclid(Builder $query, string|array $value): Builder
     {
-        return $q->where('landing_page', $landingPage);
+        return $this->applyFilter($query, 'gclid', $value);
     }
 
-    public function scopeWithIpAddress(Builder $q, string $ipAddress)
+    /** @param  string|list<string>  $value */
+    public function scopeIp(Builder $query, string|array $value): Builder
     {
-        return $q->where('ip_address', $ipAddress);
+        return $this->applyFilter($query, 'ip_address', $value);
     }
 
-    public function scopeWithUserAgent(Builder $q, string $userAgent)
+    public function scopeLandingPage(Builder $query, string $value): Builder
     {
-        return $q->where('user_agent', 'like', '%'.$userAgent.'%');
+        return $query->where('landing_page', $value);
+    }
+
+    public function scopeUserAgentLike(Builder $query, string $value): Builder
+    {
+        return $query->where('user_agent', 'like', '%'.$value.'%');
+    }
+
+    public function scopeBetween(Builder $query, mixed $from, mixed $to, string $column = 'created_at'): Builder
+    {
+        return $query->whereBetween($column, [$from, $to]);
+    }
+
+    /** Records carrying a real marketing touch, excluding direct and unknown. */
+    public function scopeAttributed(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where(function (Builder $inner) {
+                $inner->whereNotNull('utm_source')
+                    ->whereNotIn('utm_source', ['', '(none)', '(direct)']);
+            })->orWhereNotNull('gclid');
+        });
+    }
+
+    /** @param  string|list<string>  $value */
+    protected function applyFilter(Builder $query, string $column, string|array $value): Builder
+    {
+        return is_array($value)
+            ? $query->whereIn($column, $value)
+            : $query->where($column, $value);
     }
 }

@@ -1,48 +1,28 @@
 <?php
 
+use Fsuuaas\UtmTracker\Support\UtmSchema;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Creates utm_records from the field registry.
+ *
+ * Columns are derived rather than listed, so registering a field is the only
+ * edit needed for a fresh install. Note that a migration never re-runs: adding
+ * a field to an app that has already migrated needs its own ALTER migration.
+ * UtmSchema::missingColumns() reports that drift.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('utm_records', function (Blueprint $table) {
+        Schema::create(UtmSchema::table(), function (Blueprint $table) {
             $table->id();
             $table->morphs('utmable'); // utmable_type + utmable_id
 
-            // last-touch UTM
-            $table->string('utm_source')->nullable();
-            $table->string('utm_medium')->nullable();
-            $table->string('utm_campaign')->nullable();
-            $table->string('utm_term')->nullable();
-            $table->string('utm_content')->nullable();
-            $table->string('gclid')->nullable();
-
-            // first-touch UTM
-            $table->string('first_utm_source')->nullable();
-            $table->string('first_utm_medium')->nullable();
-            $table->string('first_utm_campaign')->nullable();
-            $table->string('first_utm_term')->nullable();
-            $table->string('first_utm_content')->nullable();
-            $table->string('first_gclid')->nullable();
-
-            // multi-touch funnel chains (e.g. "google>newsletter>facebook")
-            $table->text('mcf_utm_source')->nullable();
-            $table->text('mcf_utm_medium')->nullable();
-            $table->text('mcf_utm_campaign')->nullable();
-            $table->text('mcf_utm_term')->nullable();
-            $table->text('mcf_utm_content')->nullable();
-            $table->text('mcf_timestamp')->nullable();
-
-            // context
-            $table->string('referrer')->nullable();
-            $table->text('landing_page')->nullable();
-            $table->ipAddress('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-
-            $table->unsignedInteger('session_count')->nullable();
+            // last-touch, first_*, mcf_* chains, mcf_timestamp, then context.
+            UtmSchema::columns($table);
 
             $table->timestamps();
         });
@@ -50,6 +30,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('utm_records');
+        Schema::dropIfExists(UtmSchema::table());
     }
 };

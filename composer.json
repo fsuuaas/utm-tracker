@@ -2,14 +2,35 @@
     "name": "fsuuaas/utm-tracker",
     "description": "Structured UTM capture (frontend JS + Blade component) and persistence (polymorphic UtmRecord model) for Laravel apps.",
     "type": "library",
-    "license": "proprietary",
+    "license": "MIT",
+    "keywords": ["laravel", "utm", "attribution", "marketing", "analytics", "tracking"],
+    "homepage": "https://github.com/fsuuaas/utm-tracker",
+    "authors": [
+        {
+            "name": "Sharif Uddin Ahamed"
+        }
+    ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
+        "illuminate/database": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^2.9|^3.0",
+        "laravel/pint": "^1.18",
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^8.22|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.5|^12.0"
     },
     "autoload": {
         "psr-4": {
             "Fsuuaas\\UtmTracker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fsuuaas\\UtmTracker\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -19,6 +40,13 @@
             ]
         }
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "lint": "vendor/bin/pint --test",
+        "fix": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse"
+    },
+    "config": {
+        "sort-packages": true
+    }
 }

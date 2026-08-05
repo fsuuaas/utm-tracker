@@ -1,30 +1,24 @@
 /vendor/
-node_modules/
-npm-debug.log
-yarn-error.log
+/node_modules/
 
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
+# A library must not pin its dependents' resolutions.
+composer.lock
+package-lock.json
 
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
-.env
-Homestead.yaml
-Homestead.json
-/.vagrant
+# Tooling caches
 .phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.pint.cache
+/build/
+/coverage/
 
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
-auth.json
+# Local tool overrides (the .dist versions are committed)
+phpunit.xml
+phpstan.neon
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
